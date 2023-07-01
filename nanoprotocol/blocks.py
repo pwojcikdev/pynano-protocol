@@ -63,16 +63,17 @@ class BlockWrapper:
     PARTIAL_SIZE: ClassVar[int] = 64 + 8
 
     def serialize(self, stream: BufferedIOBase):
+        assert len(self.work) == 8
+        assert len(self.signature) == 64
+
         self.payload.serialize(stream)
         stream.write(self.signature)
-        # stream.write(self.work.to_bytes(8, "big"))
         stream.write(self.work)
 
     def deserialize(self, stream: BufferedIOBase):
         self.payload = create_block_by_type(self.type)
         self.payload.deserialize(stream)
         self.signature = stream.read(64)
-        # self.work = int.from_bytes(8, "big")
         self.work = stream.read(8)
 
     def size(self) -> int:

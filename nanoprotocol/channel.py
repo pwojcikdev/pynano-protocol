@@ -4,7 +4,6 @@ from ast import arg
 from dataclasses import dataclass
 from email import message
 from random import randbytes
-from typing import Self
 
 import ed25519_blake2b
 
@@ -26,6 +25,7 @@ class Channel:
     sock: socket.socket
 
     def send(self, message: MessagePayload):
+        # print("sending:", message)
         wrapped = messages.wrap_message(message)
         data = messages.serialize_message(wrapped)
         self.sock.sendall(data)
@@ -44,11 +44,12 @@ class Channel:
         return message.payload
 
     def publish_block(self, block: BlockWrapper):
+        # print("publish block:", block)
         publish = messages.MessagePublish(block)
         self.send(publish)
 
     @staticmethod
-    def connect(address: str, port: int) -> 'Channel':
+    def connect(address: str, port: int) -> "Channel":
         sock = socket.create_connection((address, port))
         # print("socket:", sock)
 
@@ -68,14 +69,14 @@ class Channel:
             # we need to complete remote server query to establish realtime channel
             assert isinstance(remote_response, MessageHandshake)
             assert remote_response.query
+            # print("handshake response:", remote_response)
 
             account, signature = create_query_response(remote_response.query)
-            local_response = MessageHandshake(
-                response=MessageHandshake.Response(account, signature)
-            )
+            local_response = MessageHandshake(response=MessageHandshake.Response(account, signature))
             channel.send(local_response)
 
         handshake()
+        # print("handshake done")
 
         return channel
 
